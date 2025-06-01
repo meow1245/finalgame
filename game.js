@@ -1385,6 +1385,8 @@ function initializeGameState() {
             requiredDay: 3, // 第3天開放
             accepted: false,
             completed: false,
+            startBuilding: '教研大樓',
+            targetBuilding: '總圖',
             dialog: {
                 offer: "同學，可以幫忙整理一下圖書館的資料嗎？",
                 progress: "謝謝你幫忙整理資料。",
@@ -1402,6 +1404,8 @@ function initializeGameState() {
             requiredDay: 3, // 第3天開放
             accepted: false,
             completed: false,
+            startBuilding: '教研大樓',
+            targetBuilding: '志道樓',
             dialog: {
                 offer: "同學，可以來社團博覽會幫忙嗎？",
                 progress: "謝謝你協助社團博覽會。",
