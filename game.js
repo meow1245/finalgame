@@ -2318,7 +2318,7 @@ function drawNightVision() {
  */
 function drawWeatherEffect() {
     if (currentWeather === "rain") {
-        ctx.strokeStyle = "rgba(0,0,255,0.3)";
+        ctx.strokeStyle = "rgba(0,0,255,0.7)";
         ctx.lineWidth = 2;
         for (let i = 0; i < 100; i++) {
             const x = Math.random() * canvas.width;
