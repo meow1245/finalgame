@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新生生存遊戲</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <div id="start-screen">
+        <h1>新生生存遊戲</h1>
+        <p>你是一位剛入學的新生，必須在這座充滿挑戰的校園中生存下去。白天上課、晚上補眠，還要應付突如其來的天氣與飢餓！</p>
+        <p>提示：移動時可以按shift加速，但會更快扣除飢餓值。地圖上有掉落物，可以按空白鍵取得。設有天氣與白天晚上系統，移動速度會有影響、或雷雨時扣血(會被劈死)。如果滑鼠點不到建築物，請移動建築物中央多點幾下(尤其是彩蛋部分)。選擇主修後需要完成該組任務，否則第12天會被退學！</p>
+        
+        <p>為了遊玩方便，選擇主修在第二天開放，期末考與隱藏特別結局第一天開放。小遊戲目前只有操場以及期末考場(客家學院上方)兩款。</p>
+        <p>*bug*前幾天是可以遊玩的，但沒測試到暴躁學長姊以及特殊建築出現，可能會有bug。另外不確定玩家能活到第15天XDDD 隱藏結局敘述是發現真相，這邊有bug，結局給錯了qq</p>
+        <p>*碎碎念*圖是之前在營隊畫的，想改像素風但時間不允許，所以看起來醜醜的qwq，未來希望還能改成多結局的遊戲，特別是愛情結局，目前只設定一半而已！</p>
+        <button id="start-button">開始遊戲</button>
+    </div>
+
+    <div id="ui">
+        <div class="status-bar">
+            <label>飢餓：</label>
+            <div class="bar-container">
+                <div id="hungerBar" class="bar hunger-bar"></div>
+            </div>
+            <span id="hunger">100</span>
+        </div>
+        <div class="status-bar">
+            <label>血量：</label>
+            <div class="bar-container">
+                <div id="healthBar" class="bar health-bar"></div>
+            </div>
+            <span id="health">100</span>
+        </div>
+        <div class="status-info">天數：<span id="day">1</span></div>
+        <div class="status-info">天氣：<span id="weather">晴天</span></div>
+        <div class="status-info">分數：<span id="score">0</span></div>
+        <div class="status-info">裝備：<span id="equippedWeapon">無</span></div>
+        <div class="status-info">主修：<span id="playerMajor">無</span></div>
+        <div id="building-dialog">
+            <h2 id="dialog-title"></h2>
+            <p id="dialog-text"></p>
+        </div>
+    </div>
+
+    <div id="task-ui">
+        <h2>任務</h2>
+        <ul>
+            <li>目前沒有任務</li>
+        </ul>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="800"></canvas>
+    </div>
+
+    <div id="game-over-screen" style="display: none;">
+        <h1>遊戲結束</h1>
+        <p id="ending-text">這裡會顯示結局內容</p>
+        <p id="score-text">你的分數：0</p>
+    
+        <!-- 新增：輸入名字與提交 -->
+        <input type="text" id="player-name" placeholder="請輸入你的名字" />
+        <button id="submit-score-button">提交分數</button>
+    
+        <!-- 新增：排行榜 -->
+        <h2>排行榜 (前10名)</h2>
+        <ul id="leaderboard"></ul>
+
+        <button id="restart-button">重新開始</button>
+    </div>
+
+    <div id="easter-egg-journal" style="display:none;">
+    <div class="journal-content">
+        <h2>日記 - 第 <span id="journal-page-num">1</span> 頁</h2>
+        <p id="journal-text">這是第一天的記錄...</p>
+        <div class="journal-controls">
+            <button id="prev-journal">上一頁</button>
+            <button id="next-journal">下一頁</button>
+        </div>
+        <button id="trigger-ending" style="display:none;">直接進入結局</button>
+    </div>
+</div>
+
+    <div id="major-selection-screen" style="display: none;">
+        <h1>選擇你的主修</h1>
+        <p>你已經度過了幾天的校園生活，現在是時候選擇你的專業方向了！</p>
+        <button id="select-science-button">理組 (工程館)</button>
+        <button id="select-arts-button">文組 (文學館)</button>
+    </div>
+
+    <div id="inventory-ui">
+        <h2>物品欄 (數字鍵選取 / 空白鍵撿取 / J 鍵使用 / K 鍵丟棄)</h2>
+        <div id="inventory">
+        </div>
+    </div>
+
+    <audio id="thunderSound" src="thunder.mp3" preload="auto"></audio>
+    <audio id="rainSound" src="rain.mp3" preload="auto" loop></audio>
+
+    <div id="minigame1-modal" style="display: none;">
+        <div class="minigame-content">
+            <h2>籃球小遊戲</h2>
+            <div id="minigame1-instructions">
+                <p>目標：在 15 秒內投進 5 球！</p>
+                <p>點擊「投籃」按鈕，讓籃球飛向移動的籃框。</p>
+                <button id="start-minigame1-button">開始遊戲</button>
+            </div>
+            <div id="minigame1-game-area" style="display: none;">
+                <canvas id="minigame1Canvas" width="400" height="300"></canvas>
+                <div class="minigame-stats">
+                    <p>時間：<span id="minigame1-time"></span> 秒</p>
+                    <p>得分：<span id="minigame1-score"></span> 分</p>
+                </div>
+                <button id="minigame1-shoot-button">投籃</button>
+            </div>
+            <div id="minigame1-results-screen" style="display: none;">
+                <p id="minigame1-result-text"></p>
+                <button id="minigame1-exit-button">離開</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="minigame2-modal" style="display: none;">
+        <div class="minigame-content">
+            <h2>期末考 (Boss 戰)</h2>
+            <div id="minigame2-instructions">
+                <p>擊敗教授！使用滑鼠點擊遊戲畫面射擊，躲避教授的攻擊。</p>
+                <p>你有 <span id="minigame2-time-display"></span> 秒的時間。</p>
+                <button id="start-minigame2-button">開始考試</button>
+            </div>
+            <div id="minigame2-game-area" style="display: none;">
+                <canvas id="minigame2Canvas" width="400" height="300"></canvas>
+                <div class="minigame-stats">
+                    <p>剩餘時間：<span id="minigame2-time"></span> 秒</p>
+                    <p>玩家血量：<span id="minigame2-player-health"></span></p>
+                    <p>教授血量：<span id="minigame2-professor-health"></span></p>
+                </div>
+                <!--<button id="minigame2-shoot-button">射擊</button>-->
+            </div>
+            <div id="minigame2-results-screen" style="display: none;">
+                <p id="minigame2-result-text"></p>
+                <button id="minigame2-exit-button">離開</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-modal" style="display: none;">
+        <div class="minigame-content">
+            <h2>知識問答</h2>
+            <div id="quiz-instructions">
+                <p>目標：在有限的題目中答對至少 3 題！</p>
+                <p>點擊「開始問答」按鈕，開始你的挑戰。</p>
+                <button id="start-quiz-button">開始問答</button>
+            </div>
+            <div id="quiz-game-area" style="display: none; flex-direction: column; align-items: center;">
+                <p>題目 <span id="quiz-current-question-num">1</span> / 5</p>
+                <p>分數：<span id="quiz-score-display">0</span></p>
+                <p id="quiz-question" style="font-size: 1.2em; margin: 15px 0;"></p>
+                <div id="quiz-options" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                </div>
+            </div>
+            <div id="quiz-results-screen" style="display: none;">
+                <p id="quiz-result-text"></p>
+                <button id="quiz-exit-button">離開</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Firebase SDK (加在 index.html 中，或動態插入 script 也可) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
