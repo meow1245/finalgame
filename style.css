@@ -1,480 +1,458 @@
+/* =========================================
+   1. 全域與基礎設定 (全螢幕修正)
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
 body {
     margin: 0;
-    background-color: #222;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    padding: 0;
+    background-color: #121212;
+    overflow: hidden; /* 禁止網頁捲動 */
+    font-family: "Noto Sans TC", "Arial", sans-serif;
+    color: white;
+    user-select: none;
+    width: 100vw;
     height: 100vh;
-    overflow: hidden;
-    font-family: "Arial", sans-serif;
-    color: white;
 }
 
+/* 讓遊戲容器填滿視窗 */
 #game-container {
-    position: relative;
-    transform-origin: center;
-    margin-bottom: 20px;
-}
-
-#ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 2;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 10px;
-    border-radius: 10px;
-    color: white;
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-}
-
-.status-bar {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-}
-
-.status-bar label {
-    min-width: 50px;
-}
-
-.bar-container {
-    display: inline-block;
-    width: 100px;
-    height: 10px;
-    background: #555;
-    border-radius: 5px;
-    margin: 0 8px;
-    vertical-align: middle;
-    overflow: hidden;
-}
-
-.bar {
-    height: 100%;
-    border-radius: 5px;
-    transition: width 0.2s ease-out;
-}
-
-.hunger-bar {
-    background-color: orange;
-}
-
-.health-bar {
-    background-color: red;
-}
-
-.status-info {
-    margin-top: 4px;
-    font-size: 1.1em;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1; /* 最底層，但在背景之上 */
 }
 
 canvas {
     display: block;
-    border: 2px solid #555;
-    border-radius: 8px;
-}
-
-#start-screen,
-#game-over-screen,
-#major-selection-screen { /* 新增主修選擇畫面 */
-    position: absolute;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    color: white;
+    background-color: #2c3e50;
+}
+
+/* =========================================
+   2. 開始畫面 (Start Screen)
+   ========================================= */
+#start-screen {
+    position: fixed; /* 使用 fixed 確保覆蓋全螢幕 */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(15,15,20,0.98), rgba(30,30,45,0.95));
+    z-index: 100;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(8px);
+}
+
+.content-box {
     text-align: center;
-    z-index: 10;
+    max-width: 900px;
+    width: 90%;
 }
 
-#start-screen h1,
-#game-over-screen h1,
-#major-selection-screen h1 {
-    font-size: 48px;
+.game-title {
+    font-size: 4rem;
     margin-bottom: 20px;
+    color: #FFD700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    line-height: 1.2;
+    letter-spacing: 2px;
 }
 
-#start-screen p,
-#major-selection-screen p {
-    max-width: 500px;
-    font-size: 18px;
-    margin-bottom: 30px;
+.game-title .subtitle {
+    font-size: 1.8rem;
+    color: #fff;
+    font-weight: normal;
+    letter-spacing: 8px;
+    display: block;
+    margin-top: 10px;
+    text-shadow: none;
+    opacity: 0.9;
 }
 
-#start-button,
-#restart-button,
-#major-selection-screen button { /* 應用按鈕樣式到主修選擇按鈕 */
-    padding: 12px 25px;
-    font-size: 22px;
-    border: none;
-    color: white;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.3s, transform 0.1s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    margin: 10px; /* 讓主修選擇按鈕有間距 */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    margin-bottom: 50px;
+    text-align: left;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s, background 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.info-card h3 {
+    margin-top: 0;
+    color: #4fc3f7;
+    border-bottom: 2px solid rgba(79, 195, 247, 0.3);
+    padding-bottom: 12px;
+    font-size: 1.3rem;
+}
+
+.info-card ul {
+    padding-left: 20px;
+    line-height: 1.8;
+    color: #ddd;
+}
+
+.key {
+    background: #e0e0e0;
+    color: #333;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-family: monospace;
+    font-size: 0.95em;
+    box-shadow: 0 3px 0 #999;
+    border: 1px solid #ccc;
+    margin-right: 8px;
+    display: inline-block;
 }
 
 #start-button {
-    background-color: #4caf50;
+    padding: 18px 60px;
+    font-size: 1.8rem;
+    background: linear-gradient(to right, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 #start-button:hover {
-    background-color: #388e3c;
-    transform: translateY(-2px);
+    transform: scale(1.05);
+    background: linear-gradient(to right, #5CB860, #4CAF50);
+    box-shadow: 0 12px 30px rgba(76, 175, 80, 0.7);
 }
 
-#restart-button {
-    background-color: #2196f3;
-    animation: pulse 1.5s infinite;
+/* =========================================
+   3. 遊戲內 UI 層 (HUD)
+   ========================================= */
+#ui-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
 }
 
-#restart-button:hover {
-    background-color: #1976d2;
-    transform: translateY(-2px);
+/* 左上角：狀態欄 */
+#ui {
+    position: absolute;
+    top: 20px; left: 20px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #555;
+    width: 240px;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
 
-/* 脈衝動畫 */
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
-    }
-}
-
-/* 主修選擇按鈕顏色 */
-#select-science-button {
-    background-color: #FF9800; /* 橙色 */
-}
-#select-science-button:hover {
-    background-color: #e68a00;
-}
-#select-arts-button {
-    background-color: #9C27B0; /* 紫色 */
-}
-#select-arts-button:hover {
-    background-color: #7b1fa2;
-}
-
-
-/* 物品欄樣式 */
-#inventory-ui {
-    background: rgba(0, 0, 0, 0.6);
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 20px;
-    width: 780px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-}
-
-#inventory-ui h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #FFEB3B;
-}
-
-#inventory {
+.status-bar {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    min-height: 50px;
-    border: 1px solid #777;
-    border-radius: 5px;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 0.1);
+    align-items: center;
+    margin-bottom: 12px;
 }
+
+.bar-container {
+    flex-grow: 1;
+    height: 16px;
+    background: #222;
+    border-radius: 8px;
+    margin-right: 12px;
+    position: relative;
+    overflow: visible;
+    border: 1px solid #444;
+}
+
+.health-container::before { content: '❤️'; position: absolute; left: -28px; top: -4px; font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+.hunger-container::before { content: '🍔'; position: absolute; left: -28px; top: -4px; font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+
+.bar { 
+    height: 100%; 
+    border-radius: 8px; 
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.2); 
+}
+.health-bar { background: linear-gradient(to right, #ff5252, #d50000); }
+.hunger-bar { background: linear-gradient(to right, #ffab40, #ff6d00); }
+
+.status-info {
+    margin-top: 8px;
+    font-size: 0.95rem;
+    color: #eee;
+    display: flex;
+    align-items: center;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* 右上角：任務欄 */
+#task-ui {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #555;
+    width: 280px;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
+}
+
+#task-ui h2 { 
+    margin: 0 0 12px 0; 
+    font-size: 1.2rem; 
+    color: #FFD700; 
+    border-bottom: 1px solid #666; 
+    padding-bottom: 8px; 
+}
+#task-ui ul { padding-left: 20px; margin: 0; font-size: 0.9rem; list-style-type: square; }
+#task-ui li { margin-bottom: 8px; line-height: 1.4; color: #ddd; }
+
+/* 底部中央：物品欄 */
+#inventory-ui {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(to top, rgba(20,20,20,0.95), rgba(50,50,50,0.9));
+    padding: 10px 20px;
+    border-radius: 16px;
+    border: 2px solid #666;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    pointer-events: auto;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#inventory-ui::before {
+    content: "🎒 背包 (1-9 選取)";
+    color: #bbb;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+#inventory { display: flex; gap: 8px; }
 
 .inventory-item {
-    background-color: #607D8B;
-    padding: 8px 12px;
-    border-radius: 5px;
+    width: 55px; height: 55px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid #444;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #fff;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    font-size: 0.9em;
-    user-select: none;
-}
-
-.inventory-item:hover {
-    background-color: #78909C;
-    transform: translateY(-1px);
+    position: relative;
+    transition: all 0.1s;
+    text-align: center;
+    line-height: 1.1;
+    overflow: hidden;
+    padding: 2px;
 }
 
 .inventory-item.selected {
-    border: 2px solid #FFEB3B;
-    transform: scale(1.05);
-    background-color: #4CAF50;
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    transform: scale(1.1);
+    background: rgba(255, 215, 0, 0.15);
+    color: #FFD700;
+    z-index: 5;
 }
 
-/* 建築物對話框樣式 */
+/* 底部對話框 */
 #building-dialog {
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: left;
-    margin-top: 20px; /* 調整這裡來往下移動 */
-    font-size: 0.9em;
-    min-height: 80px;
-}
-
-#dialog-title {
-    font-size: 1.2em;
-    margin-bottom: 5px;
-}
-
-#dialog-text {
-    font-size: 1em;
-}
-
-/* 小遊戲 Modal 樣式 */
-#minigame1-modal, #minigame2-modal, #quiz-modal { /* 統一 modal 樣式 */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* 半透明遮罩 */
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.minigame-content {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
-    color: white;
-    width: 80%;
-    max-width: 600px;
-    position: relative;
-    text-align: center; /* 讓內容居中 */
-    display: flex; /* 使用 flexbox */
-    flex-direction: column; /* 垂直排列 */
-    align-items: center; /* 水平置中內容 */
-    justify-content: center; /* 垂直置中內容 */
-}
-
-#minigame1Canvas, #minigame2Canvas { /* 統一 canvas 樣式 */
-    background-color: #222;
-    border: 2px solid #555;
-    border-radius: 8px;
-    margin-top: 10px;
-}
-
-.minigame-stats {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
-    font-size: 1.1em;
-    width: 100%; /* 讓統計數據佔滿寬度 */
-}
-
-#minigame1-shoot-button,
-#start-minigame1-button,
-#minigame1-exit-button,
-#minigame2-shoot-button,
-#start-minigame2-button,
-#minigame2-exit-button,
-#start-quiz-button,
-.quiz-option-button,
-#quiz-exit-button { /* 統一按鈕樣式 */
-    padding: 10px 20px;
-    font-size: 1.2em;
-    background-color: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    transition: background-color 0.3s, transform 0.1s;
-}
-
-#minigame1-shoot-button:hover,
-#start-minigame1-button:hover,
-#minigame1-exit-button:hover,
-#minigame2-shoot-button:hover,
-#start-minigame2-button:hover,
-#minigame2-exit-button:hover,
-#start-quiz-button:hover,
-.quiz-option-button:hover,
-#quiz-exit-button:hover {
-    background-color: #1976d2;
-    transform: translateY(-2px);
-}
-
-/* 任務 UI 樣式 */
-#task-ui {
     position: absolute;
-    top: 10px;
-    right: 10px; /* 移到右邊 */
-    left: auto; /* 取消左邊定位 */
-    z-index: 2;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 10px;
-    border-radius: 10px;
-    color: white;
-    width: 200px;
-    font-size: 0.9em;
+    bottom: 130px; /* 避開物品欄 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    max-width: 90%;
+    min-height: 100px;
+    background: rgba(15, 20, 35, 0.95);
+    border: 2px solid #4fc3f7;
+    border-radius: 12px;
+    padding: 20px 30px;
+    z-index: 15;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    pointer-events: auto;
+    display: none;
+    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-#task-ui h2 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-size: 1.1em;
+@keyframes popUp {
+    from { transform: translate(-50%, 20px) scale(0.95); opacity: 0; }
+    to { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 
-#task-ui ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
+#dialog-title { margin: 0 0 10px 0; color: #4fc3f7; font-size: 1.4rem; border-bottom: 1px solid rgba(79, 195, 247, 0.3); padding-bottom: 5px; }
+#dialog-text { margin: 0; line-height: 1.6; font-size: 1.1rem; color: #eee; }
 
-#task-ui li {
-    padding: 5px 0;
-    border-bottom: 1px solid #555;
-}
-
-#task-ui li:last-child {
-    border-bottom: none;
-}
-
-#minigame1-instructions,
-#minigame1-results-screen,
-#minigame2-instructions,
-#minigame2-results-screen,
-#quiz-instructions,
-#quiz-results-screen { /* 統一小遊戲說明和結果畫面樣式 */
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    position: absolute; /* 讓它們可以疊在遊戲區上面 */
-    top: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.7); /* 半透明背景 */
-    border-radius: 10px;
-}
-
-#minigame1-results-screen p,
-#minigame2-results-screen p,
-#quiz-results-screen p {
-    font-size: 1.3em;
-    margin-bottom: 20px;
-}
-
-/* 問答小遊戲選項按鈕間距 */
-.quiz-option-button {
-    margin: 5px;
-}
-
-/* 分數提交區 */
-#player-name {
-    padding: 10px;
-    font-size: 1.1em;
-    border: none;
-    border-radius: 5px;
-    margin-top: 15px;
-    width: 250px;
-    text-align: center;
-}
-
-#submit-score-button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    font-size: 1.1em;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
-}
-
-#submit-score-button:hover {
-    background-color: #388e3c;
-    transform: translateY(-2px);
-}
-
-/* 排行榜區 */
-#leaderboard {
-    margin-top: 20px;
-    list-style-type: none;
-    padding: 0;
-    text-align: left;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 1.1em;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+/* 右下角按鍵提示 */
+#key-guide {
+    position: absolute;
+    bottom: 20px; right: 20px;
+    background: rgba(0,0,0,0.6);
     padding: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    border-radius: 10px;
+    border-left: 4px solid #4CAF50;
+    color: white;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+.key-row { margin-bottom: 6px; display: flex; align-items: center; }
+.key-icon {
+    display: inline-block; background: #eee; color: #333;
+    padding: 1px 6px; border-radius: 4px; font-family: monospace; font-weight: bold;
+    margin-right: 10px; min-width: 18px; text-align: center; box-shadow: 0 2px 0 #999;
 }
 
-#leaderboard li {
-    padding: 6px 0;
-    border-bottom: 1px solid #444;
+/* =========================================
+   4. 小遊戲與 Modal
+   ========================================= */
+.modal, #major-selection-screen {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50; pointer-events: auto; backdrop-filter: blur(5px);
 }
 
-#leaderboard li:last-child {
-    border-bottom: none;
+.minigame-content, .modal-content {
+    background: #2a2a2a; padding: 40px; border-radius: 20px;
+    text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.9); border: 1px solid #555;
+    max-width: 500px; width: 90%;
 }
 
-#game-over-screen h2 {
-    margin-top: 30px;
-    font-size: 1.4em;
-    color: #FFEB3B;
+button {
+    background: #2196F3; color: white; border: none; padding: 12px 25px;
+    border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 20px;
+    transition: all 0.2s; font-weight: bold; box-shadow: 0 4px 0 #1565C0;
 }
+button:hover { background: #1E88E5; transform: translateY(-2px); box-shadow: 0 6px 0 #1565C0; }
 
-#easter-egg-journal {
-    position: fixed;
+.minigame-stats { display: flex; justify-content: space-around; margin: 20px 0; font-weight: bold; font-size: 1.1rem; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+#quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+.quiz-option-button { margin-top: 0; background: #444; box-shadow: 0 4px 0 #222; }
+
+/* =========================================
+   5. 遊戲結束畫面 (Game Over) - 美化重製
+   ========================================= */
+#game-over-screen {
+    position: fixed; /* 覆蓋全螢幕 */
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
+    background: rgba(0, 0, 0, 0.85); /* 深色遮罩 */
+    display: flex; /* Flexbox 置中 */
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200; /* 最高層級 */
+    backdrop-filter: blur(10px); /* 背景模糊 */
     color: white;
-}
-
-.journal-content {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 600px;
     text-align: center;
 }
 
-.journal-controls button,
-#trigger-ending {
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 1.1em;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    background-color: #2196f3;
-    color: white;
+.game-over-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 50px 80px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.game-over-title {
+    font-size: 5rem;
+    margin: 0 0 30px 0;
+    color: #ff5252;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(255, 82, 82, 0.6);
+    letter-spacing: 5px;
+    font-weight: 900;
+}
+
+.score-display {
+    margin-bottom: 30px;
+    background: rgba(0,0,0,0.3);
+    padding: 15px 30px;
+    border-radius: 50px;
+    display: inline-block;
+}
+
+.score-label {
+    display: block;
+    font-size: 1rem;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+#score-text {
+    font-size: 3rem;
+    color: #FFD700;
+    font-weight: bold;
+    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.4);
+}
+
+#ending-text {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    color: #eee;
+    max-width: 600px;
+}
+
+#restart-button {
+    background: linear-gradient(to right, #e74c3c, #c0392b);
+    box-shadow: 0 6px 0 #922b21;
+    font-size: 1.5rem;
+    padding: 15px 50px;
+    border-radius: 50px;
+}
+
+#restart-button:hover {
+    background: linear-gradient(to right, #ff5252, #e74c3c);
+    box-shadow: 0 8px 0 #922b21;
+    transform: translateY(-2px);
+}
+
+#restart-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 0 #922b21;
 }
