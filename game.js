@@ -1,63 +1,46 @@
-// --- 彩蛋攝影機 ---
-let cameraEasterEggShown = false;
-let cameraX = 100;
-let cameraY = 100;
-
-// 載入攝影機圖示
-const cameraIconImage = new Image();
-cameraIconImage.src = "img/camera.png"; // 確保這張圖存在
-cameraIconImage.onload = () => console.log("攝影機圖示載入成功");
-cameraIconImage.onerror = () => console.error("攝影機圖示載入失敗");
-
-// --- 日記內容（15 頁） ---
-const journalPages = [
-    "第 1 天：觀察對象已成功進入模擬校園，初始狀態穩定，尚未察覺異常。記錄飢餓與壓力反應正常。",
-    "第 2 天：主體展現出高度適應力，開始探索環境。部分記憶模組成功觸發，與其他NPC互動頻率提升。",
-    "第 3 天：日誌補錄：今天課上得不錯，但還是不太習慣一個人吃飯。希望能快點交到朋友。",
-    "第 4 天：偵測到主體夜間夢境出現校園崩壞片段，判定為潛在系統干擾。將觀察是否影響白天行為。",
-    "第 5 天：日誌：我夢到有人在監視我。醒來後感覺整個校園變得很陌生，有些角落好像我從沒去過。",
-    "第 6 天：主體與任務環節交互增多，動機維持穩定。注意：開始質疑任務意義。",
-    "第 7 天：日誌：為什麼每個人都在重複一樣的對話？我問了三次，社團負責人說的話一模一樣。",
-    "第 8 天：訊號干擾導致部分記憶記錄模糊，嘗試補救。主體對於時間流動出現懷疑，已回報技術部門。",
-    "第 9 天：日誌：今天的天空沒有太陽。我查了天氣預報，上面只有一行字：『維持穩定』。",
-    "第 10 天：實驗進度正常。主體尚未明顯覺察本計畫存在。監視設備保持運作。",
-    "第 11 天：日誌：我看到牆上有攝影機，而且它動了！我本來以為是裝飾，但我感覺……我被盯著。",
-    "第 12 天：主體嘗試避開既定行程，已導引回正軌。推測為系統壓力所致，進行行為微調中。",
-    "第 13 天：日誌：我發現筆記本上有別人寫的日記——內容竟然跟我一樣？難道……不只有我一個人？",
-    "第 14 天：主體進入高度警覺狀態，心率上升。記憶區域出現回寫阻抗。或已觸及實驗邊界。",
-    "第 15 天：警告！主體疑似發現實驗本質，已與觀察設備接觸，需緊急處理。進入終端階段……"
-];
-let currentPage = 0;
-function updateEasterEggTrigger() {
-    if (day >= 1 && !cameraEasterEggShown) {
-        cameraEasterEggShown = true;
-        cameraX = 0;
-        cameraY = 0;
-    }
-}
-
-
-
-
-
-// 初始化 Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyALYLemGImkdyEOb9bqKLfUqCdIZC1_5Iw",
-  authDomain: "final1-8577a.firebaseapp.com",
-  databaseURL: "https://final1-8577a-default-rtdb.firebaseio.com",
-  projectId: "final1-8577a",
-  storageBucket: "final1-8577a.firebasestorage.app",
-  messagingSenderId: "857464222763",
-  appId: "1:857464222763:web:0b4726c43670540f15666e"
-};
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-
-
-
+// ==========================================
+// 1. 最優先：初始化 Canvas (這一定要在最上面！)
+// ==========================================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+// ==========================================
+// 2. 視窗大小調整函數 (確保 Canvas 填滿視窗)
+// ==========================================
+function resizeCanvas() {
+    if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+}
+// 監聽視窗變形事件 (當玩家拉動視窗時自動調整)
+window.addEventListener('resize', resizeCanvas);
+// 初始呼叫一次 (設定初始大小)
+resizeCanvas();
+
+// ==========================================
+// 3. 圖片載入區 (放在 Canvas 初始化之後)
+// ==========================================
+// 請確保您的專案資料夾中有 img 資料夾，並且有對應的圖片檔
+const playerImg = new Image(); 
+playerImg.src = 'img/player.png'; 
+
+const foodImg = new Image();   
+foodImg.src = 'img/food.png';     
+
+const itemImg = new Image();   
+itemImg.src = 'img/item.png';
+
+// 圖片載入狀態檢查
+const images = { player: false, food: false, item: false };
+
+playerImg.onload = () => { images.player = true; console.log("玩家圖片載入成功"); };
+foodImg.onload = () => { images.food = true; console.log("食物圖片載入成功"); };
+itemImg.onload = () => { images.item = true; console.log("道具圖片載入成功"); };
+
+// ==========================================
+// 4. 接下來是 UI 元素宣告 (接原本的程式碼)
+// ==========================================
 
 const hungerDisplay = document.getElementById("hunger");
 const healthDisplay = document.getElementById("health");
@@ -83,6 +66,7 @@ const buildingDialog = document.getElementById("building-dialog");
 const dialogTitle = document.getElementById("dialog-title");
 const dialogText = document.getElementById("dialog-text");
 
+const uiLayer = document.getElementById("ui-layer"); // 新增：取得整個 UI 層的元素
 // 任務 UI 元素
 const taskUI = document.getElementById('task-ui');
 
@@ -133,7 +117,8 @@ let isDaytime;
 let foodCollected;
 let damageTaken;
 let animationId;
-let gamePaused = false; // 遊戲暫停狀態
+let gamePaused = true;  // 修改：預設為 true，這樣一進網頁遊戲是暫停的
+let gameStarted = false; // 新增：標記遊戲是否已經正式開始
 
 let lastDaySwitch;
 let lastWeatherChange;
@@ -356,30 +341,7 @@ document.addEventListener("keyup", (e) => {
 });
 
 canvas.addEventListener("click", (event) => {
-
-
     if (gamePaused) return; // 遊戲暫停時不處理主遊戲點擊事件
-
-    const rect = canvas.getBoundingClientRect();
-const clickX = event.clientX - rect.left;
-const clickY = event.clientY - rect.top;
-
-const offsetX = player.x - canvas.width / 2;
-const offsetY = player.y - canvas.height / 2;
-
-const cameraXOnCanvas = cameraX - offsetX;
-const cameraYOnCanvas = cameraY - offsetY;
-
-if (cameraEasterEggShown &&
-    clickX >= cameraXOnCanvas && clickX <= cameraXOnCanvas + 64 &&
-    clickY >= cameraYOnCanvas && clickY <= cameraYOnCanvas + 64) {
-    openEasterEggJournal();
-    return;
-}
-
-
-
-
 
     // 建築物互動邏輯
     for (let b of buildings) {
@@ -438,45 +400,6 @@ if (cameraEasterEggShown &&
         }
     }
 });
-
-function openEasterEggJournal() {
-    document.getElementById("easter-egg-journal").style.display = "flex";
-    currentPage = 0;
-    updateJournalPage();
-}
-
-function updateJournalPage() {
-    document.getElementById("journal-page-num").textContent = currentPage + 1;
-    document.getElementById("journal-text").textContent = journalPages[currentPage];
-    document.getElementById("prev-journal").disabled = currentPage === 0;
-    document.getElementById("next-journal").disabled = currentPage === journalPages.length - 1;
-    document.getElementById("trigger-ending").style.display =
-        currentPage === journalPages.length - 1 ? "inline-block" : "none";
-}
-
-document.getElementById("prev-journal").onclick = () => {
-    if (currentPage > 0) {
-        currentPage--;
-        updateJournalPage();
-    }
-};
-
-document.getElementById("next-journal").onclick = () => {
-    if (currentPage < journalPages.length - 1) {
-        currentPage++;
-        updateJournalPage();
-    }
-};
-
-document.getElementById("trigger-ending").onclick = () => {
-    document.getElementById("easter-egg-journal").style.display = "none";
-    endGame(day, "easter_ending");
-};
-
-
-
-
-
 
 /**
  * 處理建築物互動的統一函數。
@@ -1385,8 +1308,6 @@ function initializeGameState() {
             requiredDay: 3, // 第3天開放
             accepted: false,
             completed: false,
-            startBuilding: '教研大樓',
-            targetBuilding: '教研大樓',
             dialog: {
                 offer: "同學，可以幫忙整理一下圖書館的資料嗎？",
                 progress: "謝謝你幫忙整理資料。",
@@ -1404,8 +1325,6 @@ function initializeGameState() {
             requiredDay: 3, // 第3天開放
             accepted: false,
             completed: false,
-            startBuilding: '教研大樓',
-            targetBuilding: '教研大樓',
             dialog: {
                 offer: "同學，可以來社團博覽會幫忙嗎？",
                 progress: "謝謝你協助社團博覽會。",
@@ -1602,14 +1521,14 @@ function initializeGameState() {
             name: "期末考場",
             type: "minigame2", // 標記為小遊戲 2 (Boss 戰) 建築物
             minigameType: "boss-battle", // 區分這是 Boss 戰小遊戲
-            x: 1900, // 調整位置
-            y: 600, // 調整位置
+            x: 1800, // 調整位置
+            y: 800, // 調整位置
             width: 200,
             height: 200,
             visited: false, // 確保只參與一次
             dialogTitle: "期末考場",
             dialogText: "期末考來臨！通過考驗才能順利畢業！",
-            availableDay: 1, // 第13天開放
+            availableDay: 13, // 第13天開放
             deadlineDay: 14, // 第14天結束時未完成則觸發結局
             imgSrc: 'img1/教研.png'
         },
@@ -1660,9 +1579,9 @@ function initializeGameState() {
         { x: 4100, y: 4700, width: 300, height: 270, name: "女14", type: "general", dialogTitle: "女14", dialogText: "這裡是女14。", imgSrc: "img1/女14.png", visited: false },
         { x: 4000, y: 600, width: 450, height: 400, name: "曦望居", type: "general", dialogTitle: "曦望居", dialogText: "這裡是曦望居。", imgSrc: "img1/希望.png", visited: false },
         { x: 3780, y: 4700, width: 300, height: 250, name: "志道樓", type: "general", dialogTitle: "志道樓", dialogText: "這裡是志道樓。", imgSrc: "img1/志道.png", visited: false },
-        //{ x: 300, y: 800, width: 50, height: 50, name: "洗衣店", type: "general", dialogTitle: "洗衣店", dialogText: "這裡是洗衣店。", imgSrc: "img1/排球場.png", visited: false },
+        { x: 300, y: 800, width: 50, height: 50, name: "洗衣店", type: "general", dialogTitle: "洗衣店", dialogText: "這裡是洗衣店。", imgSrc: "img1/排球場.png", visited: false },
         { x: 4900, y: 3850, width: 400, height: 300, name: "據德樓", type: "general", dialogTitle: "據德樓", dialogText: "這裡是據德樓。", imgSrc: "img1/據德.png", visited: false, effectHealth: 5 },
-        //{ x: 500, y: 800, width: 50, height: 50, name: "游泳池", type: "general", dialogTitle: "游泳池", dialogText: "這裡是游泳池。", imgSrc: "img1/攀岩.png", visited: false, effectHealth: 5 },
+        { x: 500, y: 800, width: 50, height: 50, name: "游泳池", type: "general", dialogTitle: "游泳池", dialogText: "這裡是游泳池。", imgSrc: "img1/攀岩.png", visited: false, effectHealth: 5 },
         { x: 1950, y: 3550, width: 400, height: 200, name: "松苑餐廳", type: "general", dialogTitle: "松苑餐廳", dialogText: "這裡是松苑餐廳。", imgSrc: "img1/松苑.png", visited: false },
         { x: 1100, y: 1380, width: 600, height: 450, name: "游泳池", type: "general", dialogTitle: "游泳池", dialogText: "這裡是游泳池。", imgSrc: "img1/游泳池.png", visited: false },
         { x: 2200, y: 2050, width: 200, height: 300, name: "溜冰場", type: "general", dialogTitle: "溜冰場", dialogText: "這裡是溜冰場。", imgSrc: "img1/溜冰.png", visited: false },
@@ -1737,6 +1656,17 @@ function initializeGameState() {
 
     updateInventoryDisplay(); // 初始化物品欄顯示
     updateBuildingDialog("歡迎來到校園！", "點擊附近的建築物來探索吧！"); // 初始化對話框內容
+    // 顯示遊戲 UI 層
+    if (uiLayer) uiLayer.style.display = 'block'; 
+    
+    // 隱藏開始畫面 (雙重保險)
+    const startScreen = document.getElementById("start-screen");
+    if (startScreen) startScreen.style.display = "none";
+
+    // 初始化對話框
+    updateBuildingDialog("歡迎來到中央大學！", "使用 WASD 移動，點擊建築物探索。");
+    // 確保對話框顯示
+    buildingDialog.style.display = 'block';
 }
 
 /**
@@ -2158,39 +2088,13 @@ function calculateFinalScore() {
  * @param {number} finalScore 玩家的最終分數。
  * @param {string} endingType 結局類型 (可選，例如 "die_due_to_tasks")
  */
-
-document.getElementById("submit-score-button").addEventListener("click", () => {
-    const nameInput = document.getElementById("player-name");
-    const playerName = nameInput.value.trim();
-    if (!playerName) {
-        alert("請輸入名字！");
-        return;
-    }
-
-    const newEntry = firebase.database().ref("scores").push();
-    newEntry.set({
-        name: playerName,
-        score: score, // 使用全域 score 或傳入的 finalScore
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        document.getElementById("submit-score-button").disabled = true;
-        loadLeaderboard();
-    });
-});
-
-
-
-
 function endGame(daysSurvived, finalScore, endingType = "normal") {
     gameOver = true;
     cancelAnimationFrame(animationId);
     gamePaused = true; // 遊戲結束時暫停主遊戲
 
     let ending = "";
-    if (endingType === "easter_ending") {
-    ending = "你揭開了日記的秘密，看見了從未有人發現的真相。";
-    }
-    else if (endingType === "die_due_to_tasks") {
+    if (endingType === "die_due_to_tasks") {
         ending = "你未能完成足夠的任務，或失敗次數過多，最終死當，被學校退學了！";
     } else if (endingType === "die_due_to_boss") {
         ending = "你未能通過期末考，最終被學校退學了！";
@@ -2200,25 +2104,21 @@ function endGame(daysSurvived, finalScore, endingType = "normal") {
         ending = "你逐漸融入了校園生活，開始找到了自己的節奏。";
     } else if (daysSurvived <= 14) {
         ending = "你成功應對了各種挑戰，成為校園中人人稱羨的傳說。";
-    } else {
+    } else { // daysSurvived >= 15
         ending = "你完成了整整15天的生存試煉，成為最終的生存之王！";
     }
 
     endingText.textContent = ending;
-    scoreText.textContent = `你的分數：${score}`;
+    scoreText.textContent = `你的分數：${finalScore}`;
     gameOverScreen.style.display = "flex";
-
-    // 顯示排行榜功能（✅ 加這段）
-    document.getElementById("player-name").value = ""; // 清空輸入欄
-    document.getElementById("submit-score-button").disabled = false;
-    loadLeaderboard(); // 顯示前10名
 }
+
 /**
  * 更新遊戲狀態，包括玩家移動、飢餓度、血量、食物收集和天氣影響。
  * @param {number} deltaTime 自上一幀以來經過的時間（秒）。
  */
 function update(deltaTime) {
-    if (gameOver || gamePaused) return; // 遊戲結束或暫停時不更新主遊戲
+    if (!gameStarted || gameOver || gamePaused) return; // 遊戲結束或暫停時不更新主遊戲
 
     updateTimeAndWeather();
     spawnRiotStudents();
@@ -2322,8 +2222,7 @@ function drawNightVision() {
  */
 function drawWeatherEffect() {
     if (currentWeather === "rain") {
-        ctx.strokeStyle = "rgba(0,0,255,0.7)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(0,0,255,0.3)";
         for (let i = 0; i < 100; i++) {
             const x = Math.random() * canvas.width;
             const y = Math.random() * canvas.height;
@@ -2419,10 +2318,16 @@ function drawFood() {
         const fy = f.y - viewY;
         if (fx + f.size > 0 && fx - f.size < canvas.width &&
             fy + f.size > 0 && fy - f.size < canvas.height) {
-            ctx.fillStyle = "#ff9800";
-            ctx.beginPath();
-            ctx.arc(fx, fy, f.size, 0, Math.PI * 2);
-            ctx.fill();
+            if (images.food) {
+                // 繪製食物圖片 (稍微放大一點比較好看，這裡設為 size * 1.5)
+                ctx.drawImage(foodImg, fx - f.size, fy - f.size, f.size * 2, f.size * 2);
+            } else {
+                // 圖片沒載入時的備案 (原本的圓點)
+                ctx.fillStyle = "#ff9800";
+                ctx.beginPath();
+                ctx.arc(fx, fy, f.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     }
 }
@@ -2501,8 +2406,8 @@ function drawBuildings() {
                 ctx.fillRect(bx, by, b.width, b.height);
             }
 
-            ctx.strokeStyle = "#000";
-            ctx.strokeRect(bx, by, b.width, b.height);
+            //ctx.strokeStyle = "#000";
+            //ctx.strokeRect(bx, by, b.width, b.height);
 
             // 繪製 "visited" 效果 (半透明黑色覆蓋層)
             if (b.visited) {
@@ -2520,36 +2425,6 @@ function drawBuildings() {
     }
 }
 
-function loadLeaderboard() {
-    firebase.database().ref("scores")
-        .once("value", snapshot => {
-            const allData = [];
-            snapshot.forEach(child => {
-                const entry = child.val();
-                if (entry.name && typeof entry.score === "number") {
-                    allData.push(entry);
-                }
-            });
-
-            // 依分數高到低排序，取前 10 名
-            const top10 = allData.sort((a, b) => b.score - a.score).slice(0, 10);
-
-            const leaderboard = document.getElementById("leaderboard");
-            leaderboard.innerHTML = "";
-
-            top10.forEach((entry, index) => {
-                const li = document.createElement("li");
-                li.textContent = `${index + 1}. ${entry.name} - ${entry.score} 分`;
-                leaderboard.appendChild(li);
-            });
-        });
-}
-
-
-
-
-
-
 /**
  * 繪製地圖上的可拾取物品。
  */
@@ -2560,38 +2435,31 @@ function drawItems() {
     for (let item of items) {
         const ix = item.x - viewX;
         const iy = item.y - viewY;
+
         if (ix + item.size > 0 && ix < canvas.width &&
             iy + item.size > 0 && iy < canvas.height) {
-            let itemColor = "purple";
-
-            switch (item.type) { // 物品的 type 仍然保留，用於區分物品類型
-                case 'food': // 食物也應該有自己的顏色
-                    itemColor = "#ff9800";
-                    break;
-                case 'umbrella':
-                    itemColor = "#8BC34A";
-                    break;
-                case 'lightningRod':
-                    itemColor = "#FFC107";
-                    break;
-                case 'firstAidKit':
-                    itemColor = "#F44336";
-                    break;
-                case 'weapon':
-                    itemColor = "#607D8B";
-                    break;
-                case 'special':
-                    itemColor = "#FF69B4"; // 愛的香水
-                    break;
-                default: // 如果有其他物品類型，可以設定預設顏色
-                    itemColor = "purple";
-                    break;
+            
+            // 這裡可以根據 item.type 繪製不同圖片
+            // 為了簡化，這裡暫時統一用 itemImg，你可以根據需求擴充
+            // 例如: if (item.type === 'umbrella') ctx.drawImage(umbrellaImg, ...);
+            
+            if (images.item) {
+                ctx.drawImage(itemImg, ix - item.size, iy - item.size, item.size * 2, item.size * 2);
+            } else {
+                // 圖片沒載入時的備案 (原本的方塊)
+                let itemColor = "purple";
+                // ... (保留原本的顏色 switch case) ...
+                switch (item.type) { 
+                    case 'food': itemColor = "#ff9800"; break;
+                    case 'umbrella': itemColor = "#8BC34A"; break;
+                    case 'lightningRod': itemColor = "#FFC107"; break;
+                    case 'firstAidKit': itemColor = "#F44336"; break;
+                    case 'weapon': itemColor = "#607D8B"; break;
+                    case 'special': itemColor = "#FF69B4"; break;
+                }
+                ctx.fillStyle = itemColor;
+                ctx.fillRect(ix - item.size / 2, iy - item.size / 2, item.size, item.size);
             }
-
-            ctx.fillStyle = itemColor;
-            ctx.fillRect(ix - item.size / 2, iy - item.size / 2, item.size, item.size);
-            ctx.strokeStyle = "black";
-            ctx.strokeRect(ix - item.size / 2, iy - item.size / 2, item.size, item.size);
         }
     }
 }
@@ -2607,70 +2475,130 @@ function updateBuildingDialog(title, text) {
     // 因為對話框現在是固定在 UI 內，所以不需要控制 display 屬性
 }
 
+function drawInteractionPrompts() {
+    const viewX = player.x - canvas.width / 2;
+    const viewY = player.y - canvas.height / 2;
+    
+    ctx.font = "bold 14px Arial";
+    ctx.textAlign = "center";
+    
+    // 1. 提示拾取物品 (Items)
+    for (let item of items) {
+        const dist = Math.sqrt((player.x - item.x)**2 + (player.y - item.y)**2);
+        if (dist < player.size + item.size + 30) { // 距離夠近時
+            const px = item.x - viewX;
+            const py = item.y - viewY - 20; // 顯示在物品上方
+            
+            // 畫背景框
+            ctx.fillStyle = "rgba(0,0,0,0.7)";
+            ctx.fillRect(px - 40, py - 14, 80, 20);
+            // 畫文字
+            ctx.fillStyle = "#fff";
+            ctx.fillText("[空白鍵] 拾取", px, py);
+        }
+    }
 
+    // 2. 提示拾取食物 (Food)
+    for (let food of foodItems) {
+        const dist = Math.sqrt((player.x - food.x)**2 + (player.y - food.y)**2);
+        if (dist < player.size + food.size + 30) {
+            const px = food.x - viewX;
+            const py = food.y - viewY - 20;
+            
+            ctx.fillStyle = "rgba(0,0,0,0.7)";
+            ctx.fillRect(px - 40, py - 14, 80, 20);
+            ctx.fillStyle = "#FFD700"; // 金色字
+            ctx.fillText("[空白鍵] 吃掉", px, py);
+        }
+    }
+
+    // 3. 提示進入建築 (Buildings)
+    for (let b of buildings) {
+        // 簡單計算中心點距離
+        const centerX = b.x + b.width / 2;
+        const centerY = b.y + b.height / 2;
+        const dist = Math.sqrt((player.x - centerX)**2 + (player.y - centerY)**2);
+        
+        // 距離判定稍微寬鬆一點
+        if (dist < 150) { 
+            const px = centerX - viewX;
+            const py = (b.y - viewY) - 10; // 顯示在建築物頂部上方
+            
+            // 如果建築物太高超出畫面，就顯示在玩家頭頂上方
+            let drawY = py;
+            if (drawY < 0) drawY = (player.y - viewY) - 50;
+
+            ctx.fillStyle = "rgba(0,0,0,0.8)";
+            const text = `[點擊] ${b.name}`;
+            const textWidth = ctx.measureText(text).width;
+            
+            ctx.fillRect(px - textWidth/2 - 5, drawY - 14, textWidth + 10, 20);
+            ctx.fillStyle = "#4fc3f7"; // 亮藍色
+            ctx.fillText(text, px, drawY);
+        }
+    }
+}
 /**
  * 繪製所有遊戲元素。
  */
 function draw() {
-    drawBackground(); // 自定義背景畫面
+    drawBackground();
 
-    // 計算相對視角偏移量（玩家固定在畫面中央）
     const viewX = player.x - canvas.width / 2;
     const viewY = player.y - canvas.height / 2;
 
-    // 繪製地圖網格線（每 100px 一格）
-    ctx.strokeStyle = "#ccc";
-    for (let x = -viewX % 100; x < canvas.width; x += 100) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    for (let y = -viewY % 100; y < canvas.height; y += 100) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
+    drawBuildings();
+    drawFood();
+    drawItems();
+    drawRiotStudents();
 
-    // 繪製各種遊戲物件
-    drawBuildings(viewX, viewY);     // 建築物
-    drawFood(viewX, viewY);          // 食物
-    drawItems(viewX, viewY);         // 道具
-    drawRiotStudents(viewX, viewY);  // 暴動學生
+    // --- [修改] 繪製玩家 (改用圖片) ---
+        // 如果圖片載入成功，畫圖；否則畫原本的藍色方塊
+        if (images.player) {
+            ctx.drawImage(playerImg, canvas.width / 2 - player.size / 2, canvas.height / 2 - player.size / 2, player.size, player.size);
+        } else {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(canvas.width / 2 - player.size / 2, canvas.height / 2 - player.size / 2, player.size, player.size);
+        }
+        
+        // 這裡我們也移除玩家身上的黑色框線 (ctx.strokeRect) 以求美觀
+        // 如果你還是想要玩家有框，可以保留 ctx.strokeRect(...)
 
-    // 繪製玩家（永遠在畫面正中央）
-    ctx.fillStyle = "blue";
-    ctx.fillRect(canvas.width / 2 - player.size / 2, canvas.height / 2 - player.size / 2, player.size, player.size);
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(canvas.width / 2 - player.size / 2, canvas.height / 2 - player.size / 2, player.size, player.size);
+        drawInteractionPrompts(); // 上一步驟加的提示功能
 
-    // 繪製攝影機彩蛋（若已出現）
-    if (cameraEasterEggShown && cameraIconImage.complete) {
-        ctx.drawImage(cameraIconImage, cameraX - viewX, cameraY - viewY, 64, 48);
-    }
-
-    // 夜晚視野限制
     if (!isDaytime) {
         drawNightVision();
     }
-
-    // 天氣效果（雨、閃電等）
     drawWeatherEffect();
 }
 
 document.getElementById("start-button").addEventListener("click", () => {
+    console.log("遊戲開始！");
+    
+    // 1. 隱藏開始畫面
     document.getElementById("start-screen").style.display = "none";
+    
+    // 2. 設定遊戲狀態
+    gameStarted = true;
+    gamePaused = false;
+    
+    // 3. 初始化遊戲數據與介面
     initializeGameState();
+    
+    // 4. 嘗試播放背景音樂 (瀏覽器需要使用者互動後才能播放聲音)
+    // if (rainSound) rainSound.play().catch(e => console.log("等待天氣觸發音效"));
+
+    // 5. 啟動遊戲迴圈
     lastUpdateTime = performance.now();
+    // 確保不會重複啟動動畫
+    if (animationId) cancelAnimationFrame(animationId); 
     animationId = requestAnimationFrame(gameLoop);
 });
 
 restartButton.addEventListener("click", () => {
-    //initializeGameState();
-    //lastUpdateTime = performance.now();
-    //animationId = requestAnimationFrame(gameLoop);
-    location.reload(); // 重新載入整個網頁
+    initializeGameState();
+    lastUpdateTime = performance.now();
+    animationId = requestAnimationFrame(gameLoop);
 });
 
 let lastUpdateTime = 0;
@@ -2684,7 +2612,6 @@ function gameLoop(currentTime) {
     lastUpdateTime = currentTime;
 
     if (!gamePaused) { // 只有在遊戲沒有暫停時才更新和繪製主遊戲
-        updateEasterEggTrigger();
         update(deltaTime);
         draw();
     }
